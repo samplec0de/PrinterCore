@@ -25,6 +25,8 @@ class PrinterFile:
         if self.extension == "pdf":
             self.file_type = 'pdf'
             self.load_pdf()
+            if self.pdf.isEncrypted:
+                raise PrinterFileException("Encrypted pdf`s are not supported")
 
     def get_pages_count(self):
         if self.file_type == 'pdf':
