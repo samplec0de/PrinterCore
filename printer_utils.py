@@ -37,5 +37,7 @@ class PrinterFile:
 if __name__ == '__main__':
     file = PrinterFile("/Users/andrewmoskalev/PycharmProjects/PrinterCore/ура программа коллоквиума.pdf")
     print(f'Информация о "{file.name}"')
+    print(f'Тип файла: {file.file_type}')
     print(f'Страниц: {file.get_pages_count()}')
+
 
