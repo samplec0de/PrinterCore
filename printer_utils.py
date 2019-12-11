@@ -47,6 +47,17 @@ class PrinterFile:
                 f.write(img2pdf.convert(f'{jpg_path}', layout_fun=layout_fun))
             os.remove(jpg_path)
             self.load_pdf(pdf_path)
+            os.remove(pdf_path)
+        elif self.extension == 'jpg':
+            self.file_type = 'jpg'
+            pdf_path = self.file.parent / 'tempfile.pdf'
+            # specify paper size (A4)
+            a4inpt = (img2pdf.mm_to_pt(210), img2pdf.mm_to_pt(297))
+            layout_fun = img2pdf.get_layout_fun(a4inpt)
+            with open(pdf_path, "wb") as f:
+                f.write(img2pdf.convert(f'{self.path}', layout_fun=layout_fun))
+            self.load_pdf(pdf_path)
+            os.remove(pdf_path)
 
     def get_pages_count(self):
         if self.file_type in ['pdf', 'png']:
