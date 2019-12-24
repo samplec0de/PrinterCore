@@ -1,5 +1,7 @@
 import random
 import string
+import time
+
 import requests
 import img2pdf
 import tempfile
@@ -36,7 +38,7 @@ class PrinterFile:
             raise PrinterFileException("File does not exist")
         self.name = self.file.name
         self.extension = self.name.split('.')[-1].lower()
-        supported_extensions = ["pdf", "png", "jpg", "docx"]
+        supported_extensions = ["pdf", "png", "jpg"] + self.office_extensions
         if self.extension not in supported_extensions:
             raise PrinterFileException(f"File extension {self.extension} is not supported")
         if self.extension == "pdf":
@@ -50,15 +52,16 @@ class PrinterFile:
             # specify paper size (A4)
             a4inpt = (img2pdf.mm_to_pt(210), img2pdf.mm_to_pt(297))
             layout_fun = img2pdf.get_layout_fun(a4inpt)
-            png = Image.open(self.path)
-            png.load()
-            background = Image.new("RGB", png.size, (255, 255, 255))
+            with Image.open(self.path) as png:
+                png.load()
+                background = Image.new("RGB", png.size, (255, 255, 255))
             background.paste(png, mask=png.split()[3])  # 3 is the alpha channel
             jpg_path = f'{self.temp_dir.name}/{random_string()}.jpg'
             self.pdf_path = f'{self.temp_dir.name}/{random_string()}.pdf'
             background.save(jpg_path, 'JPEG', quality=80)
             with open(self.pdf_path, "wb") as f:
                 f.write(img2pdf.convert(f'{jpg_path}', layout_fun=layout_fun))
+                f.close()
             self.load_pdf(self.pdf_path)
         elif self.extension == 'jpg':
             self.file_type = 'jpg'
@@ -68,6 +71,7 @@ class PrinterFile:
             layout_fun = img2pdf.get_layout_fun(a4inpt)
             with open(self.pdf_path, "wb") as f:
                 f.write(img2pdf.convert(f'{self.path}', layout_fun=layout_fun))
+                f.close()
             self.load_pdf(self.pdf_path)
         elif self.extension in self.office_extensions:
             self.file_type = self.extension
@@ -78,6 +82,7 @@ class PrinterFile:
             self.pdf_path = f'{self.temp_dir.name}/{random_string()}.pdf'
             with open(self.pdf_path, 'wb') as binary_file:
                 binary_file.write(r.content)
+                binary_file.close()
             self.load_pdf(self.pdf_path)
 
     def get_pages_count(self):
@@ -86,25 +91,33 @@ class PrinterFile:
 
     def load_pdf(self, custom_path=None):
         if custom_path is None:
-            self.pdf = PdfFileReader(open(self.path, 'rb'))
+            self.pdf = PdfFileReader(self.path)
         else:
-            self.pdf = PdfFileReader(open(custom_path, 'rb'))
+            self.pdf = PdfFileReader(custom_path)
 
     def save(self, save_to):
         # if self.extension in ['pdf', 'png', 'jpg']:
         with open(self.pdf_path, 'rb') as src:
             with open(save_to, 'wb') as out:
                 out.write(src.read())
+                out.close()
+            src.close()
+
+    def __del__(self):
+        pass
+
 
 
 if __name__ == '__main__':
-    save_to = '/Users/andrewmoskalev/PycharmProjects/PrinterCore/result.pdf'
+    # save_to = '/Users/andrewmoskalev/PycharmProjects/PrinterCore/result.pdf'
     # file = PrinterFile("/Users/andrewmoskalev/Downloads/Копия Go plakat.pdf")
     # file = PrinterFile("/Users/andrewmoskalev/PycharmProjects/PrinterCore/Снимок экрана 2019-12-10 в 23.36.57.png")
     # file = PrinterFile("/Users/andrewmoskalev/PycharmProjects/PrinterCore/IMG_4666.JPG")
-    file = PrinterFile("/Users/andrewmoskalev/Desktop/Информатика. Переводной экзамен. Теория.docx")
+    # file = PrinterFile("/Users/andrewmoskalev/Desktop/Информатика. Переводной экзамен. Теория.docx")
+    save_to = 'Z:\\PrinterCore\\result.pdf'
+    file = PrinterFile("Z:\\PrinterCore\\Снимок экрана 2019-12-10 в 23.36.57.png")
     print(f'Информация о "{file.name}"')
     print(f'Тип файла: {file.file_type}')
     print(f'Страниц: {file.get_pages_count()}')
-    file.save(save_to)
-    print(f'pdf-файл сохранён в {save_to}')
+    # file.save(save_to)
+    # print(f'pdf-файл сохранён в {save_to}')
