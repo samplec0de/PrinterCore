@@ -1,6 +1,5 @@
 import random
 import string
-import time
 
 import requests
 import img2pdf
@@ -30,7 +29,7 @@ class PrinterFile:
     temp_dir = None
     office_extensions = ['txt', 'rtf', 'fodt', 'doc', 'docx', 'odt', 'xls', 'xlsx', 'ods', 'ppt', 'pptx', 'odp']
 
-    def __init__(self, path):
+    def __init__(self, path, url='http://10.7.0.100:3000/convert/office'):
         self.path = path
         self.file = Path(path)
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -75,7 +74,6 @@ class PrinterFile:
             self.load_pdf(self.pdf_path)
         elif self.extension in self.office_extensions:
             self.file_type = self.extension
-            url = f'http://10.7.0.100:3000/convert/office'
             r = requests.post(url, files={'input.docx': open(self.path, 'rb')})
             if r.status_code != 200:
                 raise PrinterFileException(f"Conversion error. HTTP code {r.status_code}")
